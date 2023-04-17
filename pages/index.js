@@ -1,8 +1,7 @@
 import { readdir } from 'node:fs/promises';
 import { extname, basename } from 'node:path';
 
-import { useRef, useState, useEffect, Fragment } from 'react';
-import dynamic from 'next/dynamic';
+import { useRef } from 'react';
 
 import { css } from '@emotion/react';
 import * as THREE from 'three';
@@ -10,9 +9,8 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 
 import { useOBJ, useCurve, modelDefs, Model, Wrm } from '../lib/wrms.js';
-import { GamepadButton, GamepadAxis } from '../lib/gamepad.js';
-
-const ReactPlayer = dynamic(() => import('react-player'), { ssr: false });
+import { VideoLayer } from '../components/video.js';
+import { buttonIndices } from '../lib/gamepad.js';
 
 const Crv7 = () => {
     const fruitsOBJProps = useOBJ(modelDefs['fruits']);
@@ -72,31 +70,17 @@ const Spin = () => {
 export default function Home({ videoPaths, modelNames }) {
     return (
         <>
-            <GamepadButton
-                buttonIndex={0}
-                onButtonDown={() => console.log('B')}
+            <VideoLayer
+                focusButton={buttonIndices.zl}
+                videoPaths={videoPaths}
+                initialPathIndex={Math.floor(Math.random() * videoPaths.length)}
             />
-            <GamepadButton
-                buttonIndex={1}
-                onButtonDown={() => console.log('A')}
+            <VideoLayer
+                focusButton={buttonIndices.l}
+                videoPaths={videoPaths}
+                initialPadding={100 / 4}
+                initialPathIndex={Math.floor(Math.random() * videoPaths.length)}
             />
-            <GamepadAxis axisIndex={0} onChange={v => console.log(v)} />
-            <div
-                css={css`
-                    position: absolute;
-                    width: 100vw;
-                    height: 100vh;
-                `}
-            >
-                <ReactPlayer
-                    url='/video/concentrics.webm'
-                    loop={true}
-                    muted={true}
-                    playing={true}
-                    width='100%'
-                    height='100%'
-                />
-            </div>
             <Canvas
                 css={css`
                     position: absolute !important;
