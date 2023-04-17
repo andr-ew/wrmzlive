@@ -1,3 +1,6 @@
+import { readdir } from 'node:fs/promises';
+import { extname, basename } from 'node:path';
+
 import { useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
 
@@ -66,7 +69,9 @@ const Spin = () => {
     );
 };
 
-export default function Home() {
+export default function Home({ videoPaths, modelNames }) {
+    console.log({ videoPaths, modelNames });
+
     return (
         <>
             <div
@@ -106,7 +111,20 @@ export default function Home() {
 }
 
 export const getStaticProps = async () => {
+    const allVideoPaths = await readdir('./public/video');
+    const allModelPaths = await readdir('./public/mod');
+
+    const videoPaths = [];
+    allVideoPaths.forEach(path => {
+        if (extname(path) == '.webm') videoPaths.push(path);
+    });
+
+    const modelNames = [];
+    allModelPaths.forEach(path => {
+        if (extname(path) == '.obj') modelNames.push(basename(path, '.obj'));
+    });
+
     return {
-        props: {},
+        props: { videoPaths, modelNames },
     };
 };
