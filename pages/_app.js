@@ -1,8 +1,11 @@
 import { Global, css } from '@emotion/react';
 
+import { GamepadProvider } from '../lib/gamepad.js';
+
 export default function App({ Component, pageProps }) {
     return (
         <>
+            {/* <GamePadEvents /> */}
             <Global
                 styles={css`
                     * {
@@ -26,7 +29,9 @@ export default function App({ Component, pageProps }) {
                     }
                 `}
             />
-            <Component {...pageProps} />
+            <GamepadProvider>
+                <Component {...pageProps} />
+            </GamepadProvider>
         </>
     );
 }

@@ -1,16 +1,16 @@
 import { readdir } from 'node:fs/promises';
 import { extname, basename } from 'node:path';
 
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect, Fragment } from 'react';
 import dynamic from 'next/dynamic';
 
 import { css } from '@emotion/react';
-// import ReactPlayer from 'react-player/file';
 import * as THREE from 'three';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 
 import { useOBJ, useCurve, modelDefs, Model, Wrm } from '../lib/wrms.js';
+import { useGamepad } from '../lib/gamepad.js';
 
 const ReactPlayer = dynamic(() => import('react-player'), { ssr: false });
 
@@ -70,7 +70,28 @@ const Spin = () => {
 };
 
 export default function Home({ videoPaths, modelNames }) {
-    console.log({ videoPaths, modelNames });
+    const { listener } = useGamepad();
+
+    useEffect(() => {
+        if (listener) {
+            console.log({ listener });
+
+            listener.on('gamepad:connected', event => {
+                console.log('connected', event);
+            });
+
+            listener.on('gamepad:button', event => {
+                const {
+                    index, // Gamepad index: Number [0-3].
+                    button, // Button index: Number [0-N].
+                    value, // Current value: Number between 0 and 1. Float in analog mode, integer otherwise.
+                    pressed, // Native GamepadButton pressed value: Boolean.
+                } = event.detail;
+
+                console.log({ index, button, value, pressed });
+            });
+        }
+    }, [listener]);
 
     return (
         <>
