@@ -10,7 +10,7 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 
 import { useOBJ, useCurve, modelDefs, Model, Wrm } from '../lib/wrms.js';
-import { useGamepad } from '../lib/gamepad.js';
+import { GamepadButton, GamepadAxis } from '../lib/gamepad.js';
 
 const ReactPlayer = dynamic(() => import('react-player'), { ssr: false });
 
@@ -70,31 +70,17 @@ const Spin = () => {
 };
 
 export default function Home({ videoPaths, modelNames }) {
-    const { listener } = useGamepad();
-
-    useEffect(() => {
-        if (listener) {
-            console.log({ listener });
-
-            listener.on('gamepad:connected', event => {
-                console.log('connected', event);
-            });
-
-            listener.on('gamepad:button', event => {
-                const {
-                    index, // Gamepad index: Number [0-3].
-                    button, // Button index: Number [0-N].
-                    value, // Current value: Number between 0 and 1. Float in analog mode, integer otherwise.
-                    pressed, // Native GamepadButton pressed value: Boolean.
-                } = event.detail;
-
-                console.log({ index, button, value, pressed });
-            });
-        }
-    }, [listener]);
-
     return (
         <>
+            <GamepadButton
+                buttonIndex={0}
+                onButtonDown={() => console.log('B')}
+            />
+            <GamepadButton
+                buttonIndex={1}
+                onButtonDown={() => console.log('A')}
+            />
+            <GamepadAxis axisIndex={0} onChange={v => console.log(v)} />
             <div
                 css={css`
                     position: absolute;
