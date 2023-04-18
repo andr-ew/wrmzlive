@@ -25,8 +25,8 @@ export const VideoLayer = ({
 }) => {
     const [focusButtonDown, setFocusButtonDown] = useState(Date.now());
     const [focus, setFocus] = useState(false);
-
     const [show, setShow] = useState(initialShow);
+
     const [rate, setRate] = useState(0);
     const [pathIndex, setPathIndex] = useState(initialPathIndex);
     const [padding, setPadding] = useState(initialPadding);
