@@ -3,6 +3,8 @@ import { useState, useRef, Suspense } from 'react';
 import { css } from '@emotion/react';
 import * as THREE from 'three';
 import { Canvas, useFrame } from '@react-three/fiber';
+2;
+import { OrbitControls } from '@react-three/drei';
 
 import {
     GamepadButton,
@@ -10,7 +12,14 @@ import {
     buttonIndices,
     axisIndices,
 } from '../lib/gamepad.js';
-import { useOBJ, useCurve, modelDefs, Model, Wrm } from '../lib/wrms.js';
+import {
+    useOBJ,
+    useCurve,
+    modelDefs,
+    Model,
+    Wrm,
+    curveDefs,
+} from '../lib/wrms.js';
 
 const Crv7 = () => {
     const fruitsOBJProps = useOBJ(modelDefs['fruits']);
@@ -48,25 +57,20 @@ const Crv7 = () => {
     );
 };
 
-// const Spin = () => {
-//     const fruitsOBJProps = useOBJ(modelDefs['fruits']);
-//     const fruitsRef = useRef();
-
-//     useFrame((_, delta) => (fruitsRef.current.rotation.y += delta));
-
-//     return (
-//         <>
-//             <Model
-//                 ref={fruitsRef}
-//                 modelDef={modelDefs['fruits']}
-//                 {...fruitsOBJProps}
-//             />
-//         </>
-//     );
-// };
-
-export const WrmScene = ({ focus, modelNames, initialNameIndex = 0 }) => {
+export const WrmScene = ({
+    focus,
+    modelNames,
+    initialNameIndex = 0,
+    initialCurveIndex = 0,
+}) => {
     const [nameIndex, setNameIndex] = useState(initialNameIndex);
+    const [curveIndex, setCurveIndex] = useState(initialCurveIndex);
+
+    const { wrm, scale, segCount, duration, getPoint, rotation } = curveDefs[
+        curveIndex
+    ];
+
+    const curve = useCurve(getPoint);
 
     const OBJProps = useOBJ({ name: modelNames[nameIndex] });
     const wrmRef = useRef();
@@ -105,13 +109,26 @@ export const WrmScene = ({ focus, modelNames, initialNameIndex = 0 }) => {
                             });
                         }}
                     />
+                    {/* TODO: up & down for setCurveIndex */}
+                    {/* TODO: axes set wrm rotation speeds */}
                 </>
             )}
-            <Model
-                ref={wrmRef}
-                modelDef={modelDefs[modelNames[nameIndex]]}
-                {...OBJProps}
-            />
+            {wrm ? (
+                <Wrm
+                    ref={wrmRef}
+                    modelDef={modelDefs[modelNames[nameIndex]]}
+                    {...OBJProps}
+                    {...{ curve, segCount, duration, rotation }}
+                />
+            ) : (
+                <Model
+                    ref={wrmRef}
+                    modelDef={modelDefs[modelNames[nameIndex]]}
+                    {...OBJProps}
+                    scale={[scale ?? 1, scale ?? 1, scale ?? 1]}
+                />
+            )}
+            <OrbitControls />
         </>
     );
 };
@@ -121,6 +138,7 @@ export const WrmLayer = ({
     modelNames,
     initialNameIndex = 0,
     initialShow = true,
+    initialCurveIndex = 0,
 }) => {
     const [focusButtonDown, setFocusButtonDown] = useState(Date.now());
     const [focus, setFocus] = useState(false);
@@ -140,6 +158,8 @@ export const WrmLayer = ({
                     if (heldTime < 500) setShow(!show);
                 }}
             />
+            {/* TODO: axes set camera rotation speeds */}
+            {/* TODO: camera zoom (a & x ?) */}
             <div
                 css={css`
                     position: absolute;
@@ -164,7 +184,12 @@ export const WrmLayer = ({
                 >
                     <Suspense fallback={null}>
                         <WrmScene
-                            {...{ focus, modelNames, initialNameIndex }}
+                            {...{
+                                focus,
+                                modelNames,
+                                initialNameIndex,
+                                initialCurveIndex,
+                            }}
                         />
                     </Suspense>
                 </Canvas>

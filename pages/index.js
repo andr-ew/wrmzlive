@@ -20,17 +20,20 @@ export default function Home({ videoPaths, modelNames }) {
                 focusButton={buttonIndices.zl}
                 videoPaths={videoPaths}
                 initialPathIndex={Math.floor(Math.random() * videoPaths.length)}
+                initialRate={-1}
             />
             <VideoLayer
                 focusButton={buttonIndices.l}
                 videoPaths={videoPaths}
                 initialPadding={100 / 4}
                 initialPathIndex={Math.floor(Math.random() * videoPaths.length)}
+                initialRate={-0.5}
             />
             <WrmLayer
                 focusButton={buttonIndices.r}
                 modelNames={modelNames}
                 initialNameIndex={Math.floor(Math.random() * modelNames.length)}
+                initialCurveIndex={0}
             />
         </>
     );
