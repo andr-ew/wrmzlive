@@ -66,7 +66,7 @@ export const WrmScene = ({
     initialNameIndex = 0,
     initialCurveIndex = 0,
     initialRate = 0,
-    initialZoom = 300,
+    initialZoom = 500,
 }) => {
     const [nameIndex, setNameIndex] = useState(initialNameIndex);
     const [curveIndex, setCurveIndex] = useState(initialCurveIndex);
@@ -98,7 +98,10 @@ export const WrmScene = ({
     const phiRef = useRef(0);
 
     useFrame((_, delta) => {
-        zoomRef.current += zoomDirection * zoomStep;
+        zoomRef.current = Math.max(
+            zoomRef.current + zoomDirection * zoomStep,
+            1 / 1000000
+        );
 
         if (wrm) {
             const w = wrmRef.current;
@@ -114,15 +117,7 @@ export const WrmScene = ({
 
             s.makeSafe();
 
-            camera.position.setFromSpherical(
-                s
-                // new THREE.Spherical(
-                //     zoomRef.current,
-                //     Math.PI / 2 -
-                //         (Math.PI / 2) * Math.sin(t * cameraRateY * Math.PI * 2),
-                //     Math.PI * 2 * (t * cameraRateX)
-                // )
-            );
+            camera.position.setFromSpherical(s);
             camera.lookAt(0, 0, 0);
         } else {
             camera.position.set(0, 0, zoomRef.current);
@@ -211,6 +206,13 @@ export const WrmScene = ({
                             setWrmRateY(wrmRateY + v * rateSens);
                         }}
                     />
+                    <GamepadButton
+                        buttonIndex={buttonIndices.ls}
+                        onButtonUp={() => {
+                            setWrmRateX(0);
+                            setWrmRateY(0);
+                        }}
+                    />
                     <GamepadAxis
                         axisIndex={axisIndices.rx}
                         onChange={v => {
@@ -223,7 +225,13 @@ export const WrmScene = ({
                             setCameraRateY(cameraRateY + v * rateSens);
                         }}
                     />
-                    {/* TODO: stick buttons reset rates to 0 */}
+                    <GamepadButton
+                        buttonIndex={buttonIndices.rs}
+                        onButtonUp={() => {
+                            setCameraRateX(0);
+                            setCameraRateY(0);
+                        }}
+                    />
                 </>
             )}
             {wrm ? (
@@ -252,7 +260,7 @@ export const WrmScene = ({
 export const WrmLayer = ({
     focusButton,
     modelNames,
-    initialShow,
+    initialShow = true,
     ...props
 }) => {
     const [focusButtonDown, setFocusButtonDown] = useState(Date.now());
