@@ -2,8 +2,7 @@ import { useState, useRef, Suspense } from 'react';
 
 import { css } from '@emotion/react';
 import * as THREE from 'three';
-import { Canvas, useFrame } from '@react-three/fiber';
-2;
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 
 import {
@@ -57,25 +56,80 @@ const Crv7 = () => {
     );
 };
 
+const rateSens = 0.05;
+const zoomStep = 5;
+const spherical = new THREE.Spherical();
+
 export const WrmScene = ({
     focus,
     modelNames,
     initialNameIndex = 0,
     initialCurveIndex = 0,
+    initialRate = 0,
+    initialZoom = 300,
 }) => {
     const [nameIndex, setNameIndex] = useState(initialNameIndex);
     const [curveIndex, setCurveIndex] = useState(initialCurveIndex);
+    const [cameraRateX, setCameraRateX] = useState(initialRate);
+    const [cameraRateY, setCameraRateY] = useState(initialRate);
+    const [wrmRateX, setWrmRateX] = useState(initialRate);
+    const [wrmRateY, setWrmRateY] = useState(initialRate);
+    const [zoomDirection, setZoomDirection] = useState(0); //0: none, 1: out, -1: in
+    const zoomRef = useRef(initialZoom);
 
-    const { wrm, scale, segCount, duration, getPoint, rotation } = curveDefs[
-        curveIndex
-    ];
+    const {
+        wrm,
+        scale,
+        segCount,
+        duration,
+        getPoint,
+        rotation,
+        position,
+    } = curveDefs[curveIndex];
 
     const curve = useCurve(getPoint);
 
     const OBJProps = useOBJ({ name: modelNames[nameIndex] });
     const wrmRef = useRef();
 
-    useFrame((_, delta) => (wrmRef.current.rotation.y += delta));
+    const camera = useThree(state => state.camera);
+
+    const sphericalRef = useRef(spherical);
+    const phiRef = useRef(0);
+
+    useFrame((_, delta) => {
+        zoomRef.current += zoomDirection * zoomStep;
+
+        if (wrm) {
+            const w = wrmRef.current;
+            const s = sphericalRef.current;
+
+            w.rotation.y += delta * wrmRateX;
+            w.rotation.x += delta * wrmRateY;
+
+            s.radius = zoomRef.current;
+            phiRef.current += delta * cameraRateY;
+            s.phi = Math.PI / 2 - (Math.PI / 2) * Math.sin(phiRef.current);
+            s.theta += delta * cameraRateX;
+
+            s.makeSafe();
+
+            camera.position.setFromSpherical(
+                s
+                // new THREE.Spherical(
+                //     zoomRef.current,
+                //     Math.PI / 2 -
+                //         (Math.PI / 2) * Math.sin(t * cameraRateY * Math.PI * 2),
+                //     Math.PI * 2 * (t * cameraRateX)
+                // )
+            );
+            camera.lookAt(0, 0, 0);
+        } else {
+            camera.position.set(0, 0, zoomRef.current);
+            wrmRef.current.rotation.x += delta * cameraRateY * 2;
+            wrmRef.current.rotation.y += delta * wrmRateX * 2;
+        }
+    });
 
     return (
         <>
@@ -109,8 +163,67 @@ export const WrmScene = ({
                             });
                         }}
                     />
-                    {/* TODO: up & down for setCurveIndex */}
-                    {/* TODO: axes set wrm rotation speeds */}
+                    <GamepadButton
+                        buttonIndex={buttonIndices.up}
+                        onButtonDown={() => {
+                            setCurveIndex(
+                                curveIndex == curveDefs.length - 1
+                                    ? 0
+                                    : curveIndex + 1
+                            );
+                            console.log({
+                                curveIndex,
+                            });
+                        }}
+                    />
+                    <GamepadButton
+                        buttonIndex={buttonIndices.down}
+                        onButtonDown={() => {
+                            setCurveIndex(
+                                curveIndex == 0
+                                    ? curveDefs.length - 1
+                                    : curveIndex - 1
+                            );
+                            console.log({
+                                curveIndex,
+                            });
+                        }}
+                    />
+                    <GamepadButton
+                        buttonIndex={buttonIndices.x}
+                        onButtonDown={() => setZoomDirection(-1)}
+                        onButtonUp={() => setZoomDirection(0)}
+                    />
+                    <GamepadButton
+                        buttonIndex={buttonIndices.b}
+                        onButtonDown={() => setZoomDirection(1)}
+                        onButtonUp={() => setZoomDirection(0)}
+                    />
+                    <GamepadAxis
+                        axisIndex={axisIndices.lx}
+                        onChange={v => {
+                            setWrmRateX(wrmRateX + v * rateSens);
+                        }}
+                    />
+                    <GamepadAxis
+                        axisIndex={axisIndices.ly}
+                        onChange={v => {
+                            setWrmRateY(wrmRateY + v * rateSens);
+                        }}
+                    />
+                    <GamepadAxis
+                        axisIndex={axisIndices.rx}
+                        onChange={v => {
+                            setCameraRateX(cameraRateX + v * rateSens);
+                        }}
+                    />
+                    <GamepadAxis
+                        axisIndex={axisIndices.ry}
+                        onChange={v => {
+                            setCameraRateY(cameraRateY + v * rateSens);
+                        }}
+                    />
+                    {/* TODO: stick buttons reset rates to 0 */}
                 </>
             )}
             {wrm ? (
@@ -119,6 +232,9 @@ export const WrmScene = ({
                     modelDef={modelDefs[modelNames[nameIndex]]}
                     {...OBJProps}
                     {...{ curve, segCount, duration, rotation }}
+                    position-x={position?.x ?? 0}
+                    position-y={position?.y ?? 0}
+                    position-z={position?.z ?? 0}
                 />
             ) : (
                 <Model
@@ -136,9 +252,8 @@ export const WrmScene = ({
 export const WrmLayer = ({
     focusButton,
     modelNames,
-    initialNameIndex = 0,
-    initialShow = true,
-    initialCurveIndex = 0,
+    initialShow,
+    ...props
 }) => {
     const [focusButtonDown, setFocusButtonDown] = useState(Date.now());
     const [focus, setFocus] = useState(false);
@@ -187,8 +302,7 @@ export const WrmLayer = ({
                             {...{
                                 focus,
                                 modelNames,
-                                initialNameIndex,
-                                initialCurveIndex,
+                                ...props,
                             }}
                         />
                     </Suspense>
