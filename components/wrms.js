@@ -18,43 +18,8 @@ import {
     Model,
     Wrm,
     curveDefs,
+    useSkyBox,
 } from '../lib/wrms.js';
-
-const Crv7 = () => {
-    const fruitsOBJProps = useOBJ(modelDefs['fruits']);
-    const curve = useCurve((t, optionalTarget) => {
-        var point = optionalTarget || new THREE.Vector3();
-
-        t *= Math.PI * 2;
-
-        const x = (2 + Math.cos(3 * t)) * Math.cos(2 * t);
-        const y = (2 + Math.cos(3 * t)) * Math.sin(2 * t);
-        const z = Math.sin(3 * t) * 2;
-
-        return point.set(x, y, z).multiplyScalar(60);
-    });
-    const wrmRef = useRef();
-
-    useFrame((_, delta) => {
-        const wrm = wrmRef.current;
-
-        wrm.rotation.y += delta / 2;
-        wrm.rotation.x += delta / 2;
-    });
-
-    return (
-        <>
-            <Wrm
-                ref={wrmRef}
-                {...fruitsOBJProps}
-                modelDef={modelDefs['fruits']}
-                curve={curve}
-                segCount={75}
-                duration={25 / 2}
-            />
-        </>
-    );
-};
 
 const rateSens = 0.05;
 const zoomStep = 5;
@@ -63,18 +28,23 @@ const spherical = new THREE.Spherical();
 export const WrmScene = ({
     focus,
     modelNames,
+    imagePaths,
+    skyBox = false,
     initialNameIndex = 0,
     initialCurveIndex = 0,
+    initialImageIndex = 0,
     initialRate = 0,
     initialZoom = 500,
 }) => {
     const [nameIndex, setNameIndex] = useState(initialNameIndex);
     const [curveIndex, setCurveIndex] = useState(initialCurveIndex);
+    const [imageIndex, setImageIndex] = useState(initialImageIndex);
     const [cameraRateX, setCameraRateX] = useState(initialRate);
     const [cameraRateY, setCameraRateY] = useState(initialRate);
     const [wrmRateX, setWrmRateX] = useState(initialRate);
     const [wrmRateY, setWrmRateY] = useState(initialRate);
     const [zoomDirection, setZoomDirection] = useState(0); //0: none, 1: out, -1: in
+
     const zoomRef = useRef(initialZoom);
 
     const {
@@ -96,6 +66,8 @@ export const WrmScene = ({
 
     const sphericalRef = useRef(spherical);
     const phiRef = useRef(0);
+
+    useSkyBox(imagePaths[imageIndex], skyBox);
 
     useFrame((_, delta) => {
         zoomRef.current = Math.max(
@@ -185,6 +157,34 @@ export const WrmScene = ({
                         }}
                     />
                     <GamepadButton
+                        buttonIndex={buttonIndices.a}
+                        onButtonDown={() => {
+                            setImageIndex(
+                                imageIndex == imagePaths.length - 1
+                                    ? 0
+                                    : imageIndex + 1
+                            );
+                            console.log({
+                                imageIndex,
+                                path: imagePaths[imageIndex],
+                            });
+                        }}
+                    />
+                    <GamepadButton
+                        buttonIndex={buttonIndices.y}
+                        onButtonDown={() => {
+                            setImageIndex(
+                                imageIndex == 0
+                                    ? imageNames.length - 1
+                                    : imageIndex - 1
+                            );
+                            console.log({
+                                imageIndex,
+                                path: imagePaths[imageIndex],
+                            });
+                        }}
+                    />
+                    <GamepadButton
                         buttonIndex={buttonIndices.x}
                         onButtonDown={() => setZoomDirection(-1)}
                         onButtonUp={() => setZoomDirection(0)}
@@ -257,12 +257,7 @@ export const WrmScene = ({
     );
 };
 
-export const WrmLayer = ({
-    focusButton,
-    modelNames,
-    initialShow = true,
-    ...props
-}) => {
+export const WrmLayer = ({ focusButton, initialShow = true, ...props }) => {
     const [focusButtonDown, setFocusButtonDown] = useState(Date.now());
     const [focus, setFocus] = useState(false);
     const [show, setShow] = useState(initialShow);
@@ -309,7 +304,6 @@ export const WrmLayer = ({
                         <WrmScene
                             {...{
                                 focus,
-                                modelNames,
                                 ...props,
                             }}
                         />
