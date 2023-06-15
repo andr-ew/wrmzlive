@@ -18,12 +18,12 @@ export default function Home({ videoPaths, modelNames, imagePaths }) {
 
     return (
         <>
-            <VideoLayer
-                focusButton={buttonIndices.zl}
-                videoPaths={videoPaths}
-                initialPathIndex={Math.floor(Math.random() * videoPaths.length)}
-                initialRate={-1}
-            />
+            {/* <VideoLayer */}
+            {/*     focusButton={buttonIndices.zl} */}
+            {/*     videoPaths={videoPaths} */}
+            {/*     initialPathIndex={Math.floor(Math.random() * videoPaths.length)} */}
+            {/*     initialRate={-1} */}
+            {/* /> */}
             <WrmLayer
                 focusButton={buttonIndices.zr}
                 modelNames={modelNames}
@@ -36,13 +36,13 @@ export default function Home({ videoPaths, modelNames, imagePaths }) {
                     Math.random() * imagePaths.length
                 )}
             />
-            <VideoLayer
-                focusButton={buttonIndices.l}
-                videoPaths={videoPaths}
-                initialPadding={100 / 4}
-                initialPathIndex={Math.floor(Math.random() * videoPaths.length)}
-                initialRate={-0.5}
-            />
+            {/* <VideoLayer */}
+            {/*     focusButton={buttonIndices.l} */}
+            {/*     videoPaths={videoPaths} */}
+            {/*     initialPadding={100 / 4} */}
+            {/*     initialPathIndex={Math.floor(Math.random() * videoPaths.length)} */}
+            {/*     initialRate={-0.5} */}
+            {/* /> */}
             <WrmLayer
                 focusButton={buttonIndices.r}
                 modelNames={modelNames}

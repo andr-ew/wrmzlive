@@ -1,4 +1,4 @@
-import { useState, useRef, Suspense } from 'react';
+import { useState, useRef, Suspense, useEffect } from 'react';
 
 import { css } from '@emotion/react';
 import * as THREE from 'three';
@@ -64,6 +64,8 @@ export const WrmScene = ({
 
     const camera = useThree(state => state.camera);
 
+    const renderer = useThree(state => state.gl);
+
     const sphericalRef = useRef(spherical);
     const phiRef = useRef(0);
 
@@ -75,27 +77,27 @@ export const WrmScene = ({
             1 / 1000000
         );
 
-        if (wrm) {
-            const w = wrmRef.current;
-            const s = sphericalRef.current;
+        // if (wrm) {
+        //     const w = wrmRef.current;
+        //     const s = sphericalRef.current;
 
-            w.rotation.y += delta * wrmRateX;
-            w.rotation.x += delta * wrmRateY;
+        //     w.rotation.y += delta * wrmRateX;
+        //     w.rotation.x += delta * wrmRateY;
 
-            s.radius = zoomRef.current;
-            phiRef.current += delta * cameraRateY;
-            s.phi = Math.PI / 2 - (Math.PI / 2) * Math.sin(phiRef.current);
-            s.theta += delta * cameraRateX;
+        //     s.radius = zoomRef.current;
+        //     phiRef.current += delta * cameraRateY;
+        //     s.phi = Math.PI / 2 - (Math.PI / 2) * Math.sin(phiRef.current);
+        //     s.theta += delta * cameraRateX;
 
-            s.makeSafe();
+        //     s.makeSafe();
 
-            camera.position.setFromSpherical(s);
-            camera.lookAt(0, 0, 0);
-        } else {
-            camera.position.set(0, 0, zoomRef.current);
-            wrmRef.current.rotation.x += delta * cameraRateY * 2;
-            wrmRef.current.rotation.y += delta * wrmRateX * 2;
-        }
+        //     camera.position.setFromSpherical(s);
+        //     camera.lookAt(0, 0, 0);
+        // } else {
+        //     camera.position.set(0, 0, zoomRef.current);
+        //     wrmRef.current.rotation.x += delta * cameraRateY * 2;
+        //     wrmRef.current.rotation.y += delta * wrmRateX * 2;
+        // }
     });
 
     return (
@@ -232,6 +234,29 @@ export const WrmScene = ({
                             setCameraRateY(0);
                         }}
                     />
+                    <GamepadButton
+                        buttonIndex={buttonIndices['+']}
+                        onButtonDown={() => {
+                            var imgData;
+
+                            try {
+                                var strMime = 'image/png';
+                                var strDownloadMime = 'image/octet-stream';
+
+                                imgData = renderer.domElement.toDataURL(
+                                    strMime
+                                );
+
+                                saveFile(
+                                    imgData.replace(strMime, strDownloadMime),
+                                    'wrm.png'
+                                );
+                            } catch (e) {
+                                console.log(e);
+                                return;
+                            }
+                        }}
+                    />
                 </>
             )}
             {wrm ? (
@@ -257,10 +282,31 @@ export const WrmScene = ({
     );
 };
 
+const saveFile = function (strData, filename) {
+    var link = document.createElement('a');
+    if (typeof link.download === 'string') {
+        document.body.appendChild(link); //Firefox requires the link to be in the body
+        link.download = filename;
+        link.href = strData;
+        link.click();
+        document.body.removeChild(link); //remove the link when done
+    } else {
+        location.replace(uri);
+    }
+};
+
 export const WrmLayer = ({ focusButton, initialShow = true, ...props }) => {
     const [focusButtonDown, setFocusButtonDown] = useState(Date.now());
     const [focus, setFocus] = useState(false);
     const [show, setShow] = useState(initialShow);
+
+    // useEffect(() => {
+    //     const canvas = canvasRef.current;
+
+    //     if (canvas) {
+    //         console.log({ canvas });
+    //     }
+    // }, [canvasRef]);
 
     return (
         <>
@@ -299,6 +345,7 @@ export const WrmLayer = ({ focusButton, initialShow = true, ...props }) => {
                         }
                     `}
                     camera={{ position: [0, 0, 300] }}
+                    gl={{ preserveDrawingBuffer: true }}
                 >
                     <Suspense fallback={null}>
                         <WrmScene

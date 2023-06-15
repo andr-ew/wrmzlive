@@ -10,7 +10,7 @@ export default function App({ Component, pageProps }) {
                 styles={css`
                     * {
                         box-sizing: border-box;
-                        cursor: none;
+                        // cursor: none;
                     }
 
                     html,
