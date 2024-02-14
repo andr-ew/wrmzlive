@@ -22,7 +22,7 @@ export default function App({ Component, pageProps }) {
                     }
 
                     body {
-                        background: #3e54d7;
+                        background: #000;
                     }
 
                     video {
