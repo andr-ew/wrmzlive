@@ -3,7 +3,7 @@ import { extname, basename } from 'node:path';
 
 import { useLoader } from '@react-three/fiber';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
-// import { css } from '@emotion/react';
+import { css } from '@emotion/react';
 
 import { buttonIndices } from '../lib/gamepad.js';
 import { VideoLayer } from '../components/video.js';
@@ -24,6 +24,17 @@ export default function Home({ videoPaths, modelNames, imagePaths }) {
             {/*     initialPathIndex={Math.floor(Math.random() * videoPaths.length)} */}
             {/*     initialRate={-1} */}
             {/* /> */}
+            <img
+                alt=''
+                src='/img/me/IMG_0789.jpg'
+                css={css`
+                    position: absolute;
+                    width: 100vw;
+                    height: 100vh;
+                    padding: 0;
+                    object-fit: contain;
+                `}
+            />
             <WrmLayer
                 focusButton={buttonIndices.zr}
                 modelNames={modelNames}
