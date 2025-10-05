@@ -21,9 +21,12 @@ import {
     useSkyBox,
 } from '../lib/wrms.js';
 
-const rateSens = 0.05;
+const rateSens = 0.01;
 const zoomStep = 5;
 const spherical = new THREE.Spherical();
+
+const maxWrmRate = 0.1;
+const maxCameraRate = maxWrmRate;
 
 export const WrmScene = ({
     focus,
@@ -47,15 +50,8 @@ export const WrmScene = ({
 
     const zoomRef = useRef(initialZoom);
 
-    const {
-        wrm,
-        scale,
-        segCount,
-        duration,
-        getPoint,
-        rotation,
-        position,
-    } = curveDefs[curveIndex];
+    const { wrm, scale, segCount, duration, getPoint, rotation, position } =
+        curveDefs[curveIndex];
 
     const curve = useCurve(getPoint);
 
@@ -72,7 +68,7 @@ export const WrmScene = ({
     useFrame((_, delta) => {
         zoomRef.current = Math.max(
             zoomRef.current + zoomDirection * zoomStep,
-            1 / 1000000
+            1 / 1000000,
         );
 
         if (wrm) {
@@ -108,7 +104,7 @@ export const WrmScene = ({
                             setNameIndex(
                                 nameIndex == modelNames.length - 1
                                     ? 0
-                                    : nameIndex + 1
+                                    : nameIndex + 1,
                             );
                             console.log({
                                 nameIndex,
@@ -122,7 +118,7 @@ export const WrmScene = ({
                             setNameIndex(
                                 nameIndex == 0
                                     ? modelNames.length - 1
-                                    : nameIndex - 1
+                                    : nameIndex - 1,
                             );
                             console.log({
                                 nameIndex,
@@ -136,7 +132,7 @@ export const WrmScene = ({
                             setCurveIndex(
                                 curveIndex == curveDefs.length - 1
                                     ? 0
-                                    : curveIndex + 1
+                                    : curveIndex + 1,
                             );
                             console.log({
                                 curveIndex,
@@ -149,7 +145,7 @@ export const WrmScene = ({
                             setCurveIndex(
                                 curveIndex == 0
                                     ? curveDefs.length - 1
-                                    : curveIndex - 1
+                                    : curveIndex - 1,
                             );
                             console.log({
                                 curveIndex,
@@ -162,7 +158,7 @@ export const WrmScene = ({
                             setImageIndex(
                                 imageIndex == imagePaths.length - 1
                                     ? 0
-                                    : imageIndex + 1
+                                    : imageIndex + 1,
                             );
                             console.log({
                                 imageIndex,
@@ -176,7 +172,7 @@ export const WrmScene = ({
                             setImageIndex(
                                 imageIndex == 0
                                     ? imageNames.length - 1
-                                    : imageIndex - 1
+                                    : imageIndex - 1,
                             );
                             console.log({
                                 imageIndex,
@@ -197,13 +193,17 @@ export const WrmScene = ({
                     <GamepadAxis
                         axisIndex={axisIndices.lx}
                         onChange={v => {
-                            setWrmRateX(wrmRateX + v * rateSens);
+                            setWrmRateX(
+                                Math.min(wrmRateX + v * rateSens, maxWrmRate),
+                            );
                         }}
                     />
                     <GamepadAxis
                         axisIndex={axisIndices.ly}
                         onChange={v => {
-                            setWrmRateY(wrmRateY + v * rateSens);
+                            setWrmRateY(
+                                Math.min(wrmRateY + v * rateSens, maxWrmRate),
+                            );
                         }}
                     />
                     <GamepadButton
@@ -216,13 +216,23 @@ export const WrmScene = ({
                     <GamepadAxis
                         axisIndex={axisIndices.rx}
                         onChange={v => {
-                            setCameraRateX(cameraRateX + v * rateSens);
+                            setCameraRateX(
+                                Math.min(
+                                    cameraRateX + v * rateSens,
+                                    maxCameraRate,
+                                ),
+                            );
                         }}
                     />
                     <GamepadAxis
                         axisIndex={axisIndices.ry}
                         onChange={v => {
-                            setCameraRateY(cameraRateY + v * rateSens);
+                            setCameraRateY(
+                                Math.min(
+                                    cameraRateY + v * rateSens,
+                                    maxCameraRate,
+                                ),
+                            );
                         }}
                     />
                     <GamepadButton
