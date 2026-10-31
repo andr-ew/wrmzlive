@@ -171,7 +171,7 @@ export const WrmScene = ({
                         onButtonDown={() => {
                             setImageIndex(
                                 imageIndex == 0
-                                    ? imageNames.length - 1
+                                    ? imagePaths.length - 1
                                     : imageIndex - 1,
                             );
                             console.log({
